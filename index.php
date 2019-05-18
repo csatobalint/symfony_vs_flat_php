@@ -1,18 +1,21 @@
 <?php
 
-// index.php
-// load and initialize any global libraries
-require_once 'model.php';
-require_once 'controllers.php';
+require_once 'vendor/autoload.php';
 
-// route the request internally
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-if ('/index.php' === $uri || '/' === $uri) {
-    list_action();
-} elseif ('/index.php/show' === $uri && isset($_GET['id'])) {
-    show_action($_GET['id']);
+$request = Request::createFromGlobals();
+$uri = $request->getPathInfo();
+
+if ('/' === $uri) {
+    $response = list_action();
+} elseif ('/show' === $uri && $request->query->has('id')) {
+    $response = show_action($request->query->get('id'));
 } else {
-    header('HTTP/1.1 404 Not Found');
-    echo '<html><body><h1>Page Not Found</h1></body></html>';
+    $html = '<html><body><h1>Page Not Found</h1></body></html>';
+    $response = new Response($html, Response::HTTP_NOT_FOUND);
 }
+
+// echo the headers and send the response
+$response->send();
